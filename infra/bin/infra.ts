@@ -1,20 +1,37 @@
-#!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib/core';
-import { InfraStack } from '../lib/infra-stack';
+import { CdkTutorialStack } from '../lib/stack/cdk-tutorial-stack';
+import { StackParameter, stagingStackParameter } from '../parameter';
+import { execSync } from "child_process";
 
 const app = new cdk.App();
-new InfraStack(app, 'InfraStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+let infraStackParameter: StackParameter;
+infraStackParameter = stagingStackParameter;
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+// --- アカウント誤デプロイ防止 ---
+// .env の CDK_ACCOUNT と実際の AWS 認証情報のアカウントが一致しない場合にデプロイを中断する。
+const awsIdentityJson = execSync("aws sts get-caller-identity --output json", {
+  encoding: "utf-8",
 });
+const identity = JSON.parse(awsIdentityJson);
+const currentAccount = identity.Account;
+
+if (currentAccount !== infraStackParameter.env.account) {
+  throw new Error(
+    `🚫 Account mismatch detected!
+      Expected: ${infraStackParameter.env.account}
+      Actual:   ${currentAccount}
+
+    Please switch AWS profile or update parameters.`
+  );
+}
+
+
+// env は  cdk.Stack の super() に渡され、スタックの account/region を定義する. 同じ Stack の中のリソースは全部同じ 「region/account」 内で自動的に作成されます。
+const stack = new CdkTutorialStack(app, 'CdkTutorialStack', {
+  config: infraStackParameter,
+  env: infraStackParameter.env
+});
+
+cdk.Tags.of(stack).add('Project', 'CdkTutorial');

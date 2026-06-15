@@ -1,14 +1,24 @@
-# Welcome to your CDK TypeScript project
+# インフラ (AWS CDK)
 
-This is a blank project for CDK development with TypeScript.
+AWS CDK (TypeScript) によるインフラ定義です。
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## セットアップ
 
-## Useful commands
+### 1. 依存パッケージのインストール
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+```bash
+npm install
+```
+
+### 2. 環境変数の設定
+
+`.env.example` をコピーして `.env` を作成し、自分の AWS アカウント ID を設定します。
+
+## コマンド
+
+| コマンド | 内容 |
+|---------|------|
+| `cdk synth` | CloudFormation テンプレートを出力（構文確認） |
+| `cdk diff` | 現在デプロイ中との差分を確認 |
+| `cdk deploy` | AWS にデプロイ |
+| `cdk bootstrap` | 初回のみ必要なセットアップ |
