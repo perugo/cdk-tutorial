@@ -1,0 +1,14 @@
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# CDK context cache - contains sensitive info like AWS account ID
+cdk.context.json
+
+# Environment variables (contains AWS account ID etc.)
+.env
