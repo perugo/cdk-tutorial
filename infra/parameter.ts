@@ -2,6 +2,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 import { commonConfig } from "./lib/config/common";
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 // ==========================================================================
 // AWSアカウント情報
@@ -17,6 +18,7 @@ interface Env {
 export interface StackParameter {
   envName: string;
   env: Env;
+  cpu: ec2.InstanceSize;
 }
 
 export const stagingStackParameter: StackParameter = {
@@ -24,5 +26,6 @@ export const stagingStackParameter: StackParameter = {
   env: {
     account: process.env.CDK_ACCOUNT ?? (() => { throw new Error('CDK_ACCOUNT is not set in .env') })(),
     region: commonConfig.region
-  }
+  },
+  cpu: ec2.InstanceSize.MICRO,
 };
