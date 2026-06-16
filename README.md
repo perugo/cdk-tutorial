@@ -93,3 +93,13 @@ aws sts get-caller-identity
     "Arn": "arn:aws:iam::123456789012:user/your-user-name"
 }
 ```
+
+## サーバーアクセス（ecspresso）
+
+ステージング・本番環境のECSタスクへのアクセスにはecspressoを使用。
+詳細は [ecspresso/usages.md](ecspresso/usages.md) を参照。
+
+```bash
+# コンテナ内でbash実行
+ecspresso/staging/run_bash.sh
+```
