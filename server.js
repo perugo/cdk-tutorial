@@ -1,11 +1,13 @@
+// Express で index.html を配信するアプリ
 const express = require('express');
-const app = express()
-const PORT = 3000;
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+// 静的ファイル (index.html) を配信
+app.use(express.static(path.join(__dirname)));
 
 app.get('/health', (req, res) => {
   res.status(200).send('healthy\n');

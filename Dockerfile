@@ -10,6 +10,7 @@ RUN apk add --no-cache bash
 
 # アプリのソース
 COPY server.js ./
+COPY index.html ./
 
 # 非rootユーザーで実行（セキュリティ）
 USER node
