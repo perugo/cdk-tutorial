@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib/core';
 import { Construct } from 'constructs';
 import { StackParameter } from '../../parameter';
 import { Vpc } from '../constructs/vpc';
-import { Ec2 } from '../constructs/ec2';
+import { FargateService } from '../constructs/fargate_service';
 import { Ecr } from '../constructs/ecr';
 
 interface CdkTutorialStackProps extends cdk.StackProps {
@@ -14,7 +14,7 @@ export class CdkTutorialStack extends cdk.Stack {
 
     super(scope, id, props);
 
-    const { envName, cpu } = props.config;
+    const { envName, serviceCpu, serviceMemory } = props.config;
 
     // タグやRemovalPolicyを一元管理
     cdk.Tags.of(this).add('Env', envName);
@@ -23,9 +23,14 @@ export class CdkTutorialStack extends cdk.Stack {
     //VPC
     const vpcConstruct = new Vpc(this, 'Vpc');
 
-    new Ecr(this, 'Ecr');
-    new Ec2(this, 'Ec2', {
-      vpcConstruct, cpu
+    const ecrConstruct = new Ecr(this, 'Ecr', { envName });
+
+    new FargateService(this, 'FargateService', {
+      vpcConstruct,
+      ecrConstruct,
+      serviceCpu,
+      serviceMemory,
+      envName,
     });
   }
 }

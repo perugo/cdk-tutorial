@@ -18,7 +18,8 @@ interface Env {
 export interface StackParameter {
   envName: string;
   env: Env;
-  cpu: ec2.InstanceSize;
+  serviceCpu: number;
+  serviceMemory: number;
 }
 
 export const stagingStackParameter: StackParameter = {
@@ -27,5 +28,6 @@ export const stagingStackParameter: StackParameter = {
     account: process.env.CDK_ACCOUNT ?? (() => { throw new Error('CDK_ACCOUNT is not set in .env') })(),
     region: commonConfig.region
   },
-  cpu: ec2.InstanceSize.MICRO,
+  serviceCpu: 256,
+  serviceMemory: 512,
 };
