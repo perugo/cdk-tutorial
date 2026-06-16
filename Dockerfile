@@ -6,6 +6,7 @@ WORKDIR /app
 # package.json と package-lock.jsonのキャッシュされる
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
+RUN apk add --no-cache bash
 
 # アプリのソース
 COPY server.js ./

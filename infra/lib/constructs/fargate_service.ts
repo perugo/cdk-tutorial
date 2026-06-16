@@ -22,7 +22,7 @@ export class FargateService extends Construct {
     const { vpcConstruct, ecrConstruct, serviceCpu, serviceMemory, envName } = props;
     const { appName } = commonConfig;
 
-    const cluster = new ecs.Cluster(this, 'Cluster', { vpc: vpcConstruct.vpc });
+    const cluster = new ecs.Cluster(this, 'Cluster', { vpc: vpcConstruct.vpc, clusterName: `${appName}-${envName}-ecs-cluster-web` });
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
       cpu: serviceCpu,
@@ -49,7 +49,9 @@ export class FargateService extends Construct {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       },
       assignPublicIp: false,
-      circuitBreaker: { rollback: true }
+      circuitBreaker: { rollback: true },
+      serviceName: `${appName}-${envName}-web-service`,
+      enableExecuteCommand: true, // ecspresso exec / portforward 用に ECS Exec を有効化
     });
   }
 }
