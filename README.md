@@ -57,12 +57,6 @@ macOS では以下の 2 ファイルに分けて管理します。
 region = ap-northeast-1
 output = json
 ```
-
-| キー | 説明 |
-|-----|------|
-| `region` | デフォルトのリージョン。`ap-northeast-1` は東京リージョン |
-| `output` | コマンド出力の形式。`json` / `text` / `table` から選択 |
-
 ---
 
 ### `~/.aws/credentials` — 認証情報ファイル
