@@ -1,67 +1,77 @@
-# CDKインフラ開発チュートリアル
+# CDK インフラ開発チュートリアル
 
-# 全体構成図
+AWS CDK (TypeScript) を使って、Node.js の Web アプリを **コンテナ化 → ECS Fargate へデプロイ → ALB + 独自ドメイン HTTPS で公開** するまでを段階的に学べるチュートリアルリポジトリです。
 
-# プロジェクト構成
-
-このリポジトリはモノレポ構成です。一つのリポジトリでアプリコードとインフラコードの両方を管理しています。
-
-インフラの環境分けはせず、**staging 環境のみ**を対象とします。
-
-- **ルートディレクトリ**: アプリケーションコード
-- **`/infra`**: インフラコード（AWS CDK）
-
-```
-cdk-tutorial/
-├── infra/                  # CDK によるインフラ定義
-│   ├── bin/
-│   │   └── infra.ts        # スタックを登録するエントリーポイント
-│   ├── lib/
-│   │   └── infra-stack.ts  # スタック定義。AWS リソース（S3, Lambda など）をここに書く
-│   └── parameter.ts        # アカウントID・リージョン。スタックに渡す設定値（CPU・アプリ名・ドメイン名など）を定義する
-└── ...                     # アプリケーションコード
-```
-
-# 環境構築
-
-## 前提条件
-
-このプロジェクトを動かすには **Node.js** と **AWS CLI**、**AWS CDK** が必要です。AWS CDK は Node.js 上で動作するため、まず Node.js がインストールされていることを確認してください。
-
-```bash
-# Node.js がグローバルにインストールされていることを確認
-node -v
-
-# AWS CLI のインストール
-brew install awscli
-aws --version
-
-# cdkをグローバルにインストール
-npm install -g aws-cdk
-```
-
-## AWS 認証情報の設定
-
-AWS CLI や CDK が AWS へアクセスするには、**認証情報**（誰として操作するか）と**設定**（どのリージョンを使うか）を事前に用意する必要があります。
-
-macOS では以下の 2 ファイルに分けて管理します。
+各ステップは [`guide/`](guide/) 配下の Markdown に手順がまとまっています。コードと手順書がセットで進む構成なので、`git switch` でブランチを切り替えながら差分を見るのもおすすめです。
 
 ---
 
-### `~/.aws/config` — 設定ファイル
+## チュートリアルの進め方
 
-リージョンや出力形式など、AWS CLI の動作設定を記述します。
+| Step | 内容 | ガイド |
+|------|------|--------|
+| 01 | CDK プロジェクトを初期化して空スタックをデプロイ | [guide/step01.md](guide/step01.md) |
+| 02 | アプリを Docker 化し、EC2 へ手動デプロイ（ECR + SSM Session Manager） | [guide/step02.md](guide/step02.md) |
+| 03 | ECS Fargate へ移行し、ecspresso でコンテナに入る | [guide/step03.md](guide/step03.md) |
+| 04 | ALB + Route53 + ACM で独自ドメイン HTTPS 公開 | [guide/step04.md](guide/step04.md) |
+
+---
+
+## プロジェクト構成
+
+このリポジトリは **モノレポ構成** です。1 つのリポジトリでアプリコードとインフラコードの両方を管理しています。
+インフラの環境分けはせず、**staging 環境のみ** を対象としています。
+
+```
+cdk-tutorial/
+├── guide/                          # チュートリアル本体
+│
+├── infra/                          # AWS CDK によるインフラ定義
+│   ├── bin/infra.ts                # エントリーポイント
+│   ├── parameter.ts                # アカウント ID / リージョン / CPU など
+│   └── lib/
+│       ├── stack/
+│       │   └── cdk-tutorial-stack.ts   # スタック本体（Construct を組み立てる）
+│       └── constructs/             # 機能単位の Construct 群
+│
+├── ecspresso/                      # ECS タスクへの ssh 代替アクセス
+└── ...                             # アプリケーションコード
+```
+
+---
+
+## 環境構築
+
+### 必要なツール
+
+| ツール | 用途 | 備考 |
+|---|---|---|
+| Node.js | CDK / アプリ実行 | v22 推奨 |
+| AWS CLI v2 | 認証 / 各種操作 | `brew install awscli` |
+| AWS CDK | インフラデプロイ | `npm install -g aws-cdk` |
+| Docker | コンテナビルド | Apple Silicon は ARM64 ネイティブで OK |
+| ecspresso | ECS Exec | step03 以降で利用。詳細は [ecspresso/usage.md](ecspresso/usage.md) |
+
+```bash
+node -v
+aws --version
+cdk --version
+docker --version
+```
+
+### AWS 認証情報の設定
+
+AWS CLI / CDK が AWS にアクセスするために、認証情報と既定リージョンを 2 つのファイルに分けて設定します。
+
+**`~/.aws/config`** — 既定リージョンや出力形式
 
 ```ini
 [default]
 region = ap-northeast-1
 output = json
 ```
----
 
-### `~/.aws/credentials` — 認証情報ファイル
-
-AWS へのアクセスキーを記述します。**このファイルは絶対に git に含めないでください。**
+**`~/.aws/credentials`** — アクセスキー（**絶対に git に含めない**）
 
 ```ini
 [default]
@@ -69,37 +79,33 @@ aws_access_key_id = xxxxxxxxxx
 aws_secret_access_key = yyyyyyyyyyyyyyyyyy
 ```
 
-| キー | 説明 |
-|-----|------|
-| `aws_access_key_id` | IAM ユーザーのアクセスキー ID |
-| `aws_secret_access_key` | IAM ユーザーのシークレットアクセスキー |
-
 アクセスキーは AWS コンソール → IAM → ユーザー → 「セキュリティ認証情報」タブから発行できます。
 
----
-
-### 設定の確認
+設定後の確認：
 
 ```bash
 aws sts get-caller-identity
+# {
+#   "UserId": "AIDAXXXXXXXXXXXXXXXX",
+#   "Account": "123456789012",
+#   "Arn": "arn:aws:iam::123456789012:user/your-user-name"
+# }
 ```
 
-以下のように自分のアカウント情報が返れば正しく設定されています。
+### CDK 側のセットアップ
 
-```json
-{
-    "UserId": "AIDAXXXXXXXXXXXXXXXX",
-    "Account": "123456789012",
-    "Arn": "arn:aws:iam::123456789012:user/your-user-name"
-}
-```
+`infra/` 配下の細かい手順は [infra/README.md](infra/README.md) と [guide/step01.md](guide/step01.md) を参照してください。
+
+---
 
 ## サーバーアクセス（ecspresso）
 
-ステージング・本番環境のECSタスクへのアクセスにはecspressoを使用。
-詳細は [ecspresso/usages.md](ecspresso/usages.md) を参照。
+step03 以降、ステージング環境の ECS タスクへは ecspresso 経由でアクセスします。
 
 ```bash
-# コンテナ内でbash実行
+# コンテナ内で bash を実行
 ecspresso/staging/run_bash.sh
 ```
+
+詳細は [ecspresso/usage.md](ecspresso/usage.md) を参照してください。
+
