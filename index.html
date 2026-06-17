@@ -124,6 +124,17 @@
             </div>
         </div>
 
+        <div class="endpoint-section">
+            <h3>🔗 RDS 疎通確認 (/db-health)</h3>
+            <p>Node.js <code>pg</code> クライアントを使用した PostgreSQL (RDS) への接続テスト</p>
+            <button class="test-button" onclick="testEndpoint('/db-health', 'db-health-result')">
+                /db-health を実行
+            </button>
+            <div id="db-health-result" class="result-box">
+                結果がここに表示されます...
+            </div>
+        </div>
+
         <div class="info">
             <strong>📚 構成:</strong><br>
             Route 53 → ALB (HTTPS) → ECS Fargate (Node.js + Express)<br>
