@@ -138,7 +138,7 @@ export class ApplicationPipeline extends Construct {
         build: {
           commands: [
             'echo Building Docker image...',
-            'docker build --platform linux/arm64 --build-arg -t ${repositoryUri}:latest -f Dockerfile .', // ARM64プラットフォーム用にビルド
+            'docker build --platform linux/arm64 -t ${repositoryUri}:latest -f Dockerfile .', // ARM64プラットフォーム用にビルド
           ],
         },
         post_build: {
