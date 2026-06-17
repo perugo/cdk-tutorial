@@ -1,0 +1,50 @@
+name: app-deploy
+
+on:
+  push:
+    branches: [staging, production]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # [staging, production]のブランチと、GitHubのEnvironmentをマッピング
+    environment: >-
+      ${{
+        github.ref == 'refs/heads/staging' && 'staging'||
+        github.ref == 'refs/heads/production' && 'production'
+      }}
+
+    env:
+      REPOSITORY_NAME: cdk-tutorial
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region:     ${{ vars.AWS_REGION }} # vars GitHubで設定したそれぞれのEnvironmentから取得
+          role-to-assume: ${{ vars.AWS_CICD_ROLE_ARN }}
+
+      - name: Zip application directory
+        run: |
+          zip -r source.zip . \
+            --exclude="*.git*" \
+            --exclude="node_modules/*" \
+            --exclude="*.DS_Store" \
+            --exclude="infra/*" \
+            --exclude=".github/*" \
+            --exclude="tmp/*" \
+            --exclude="log/*" \
+            --exclude="storage/*" \
+            --exclude="source.zip"
+
+      - name: Upload zipped application to S3 # ApplicationPipelineで定義したS3へプッシュ
+        run: |
+          aws s3 cp source.zip \
+            s3://cdk-${{ vars.ENV_NAME }}-app-source-${{ env.REPOSITORY_NAME }}/source.zip 
