@@ -7,6 +7,8 @@ import { Route53 } from '../constructs/route53';
 import { Rds } from '../constructs/rds';
 import { Acm } from '../constructs/acm';
 import { LoadBalancedFargateService } from '../constructs/load_balanced_fargate_service';
+import { ApplicationPipeline } from '../constructs/app_pipeline';
+
 interface CdkTutorialStackProps extends cdk.StackProps {
   config: StackParameter;
 }
@@ -43,7 +45,7 @@ export class CdkTutorialStack extends cdk.Stack {
       hostedZone: route53Construct.hostedZone
     });
 
-    new LoadBalancedFargateService(this, 'LoadBalancedFargateService', {
+    const loadBalancedFargateServiceConstruct = new LoadBalancedFargateService(this, 'LoadBalancedFargateService', {
       vpcConstruct,
       ecrConstruct,
       rdsSecret: rdsConstruct.secret,
@@ -52,6 +54,12 @@ export class CdkTutorialStack extends cdk.Stack {
       certificate: acmConstruct.certificate,
       envName: envName,
       hostedZone: route53Construct.hostedZone,
+    });
+
+    new ApplicationPipeline(this, 'ApplicationPipeline', {
+      envName,
+      repository: ecrConstruct.repository,
+      service: loadBalancedFargateServiceConstruct.service,
     });
   }
 }
