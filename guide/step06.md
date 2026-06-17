@@ -101,7 +101,7 @@ GitHub → Actions タブで workflow が実行されることを確認：
 **原因：** GitHub Environment の `AWS_CICD_ROLE_ARN` が正しくない、または trust policy が `repo:perugo/cdk-tutorial` 以外に設定されている
 
 **対処：**
-1. AWS IAM コンソールで trust policy を確認（手順 2）
+1. AWS IAM コンソールで trust policy を確認
 2. GitHub Environment の `AWS_CICD_ROLE_ARN` を正しい ARN に更新
 
 ---
