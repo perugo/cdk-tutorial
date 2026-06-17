@@ -15,9 +15,18 @@ interface Env {
   region: string;
 }
 
+export interface DatabaseConfig {
+  instanceClass: ec2.InstanceClass;  // インスタンスクラス（ec2.InstanceClass.T3等）
+  instanceSize: ec2.InstanceSize;    // インスタンスサイズ（ec2.InstanceSize.MICRO等）
+  backupRetentionDays: number;       // バックアップ保持日数
+  multiAz: boolean;                  // マルチAZ配置
+  deletionProtection: boolean;       // 削除保護
+}
+
 export interface StackParameter {
   envName: string;
   env: Env;
+  database: DatabaseConfig;
   serviceCpu: number;
   serviceMemory: number;
 }
@@ -27,6 +36,13 @@ export const stagingStackParameter: StackParameter = {
   env: {
     account: process.env.CDK_ACCOUNT ?? (() => { throw new Error('CDK_ACCOUNT is not set in .env') })(),
     region: commonConfig.region
+  },
+  database: {
+    instanceClass: ec2.InstanceClass.T3,
+    instanceSize: ec2.InstanceSize.MICRO,
+    backupRetentionDays: 7,
+    multiAz: false,
+    deletionProtection: false,
   },
   serviceCpu: 256,
   serviceMemory: 512,

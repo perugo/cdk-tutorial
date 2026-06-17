@@ -7,12 +7,14 @@ import * as ecs_patterns from "aws-cdk-lib/aws-ecs-patterns";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { commonConfig } from "./../config/common";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 
 interface LoadBalancedFargateServiceProps {
   vpcConstruct: Vpc;
   ecrConstruct: Ecr;
   serviceCpu: number;
   serviceMemory: number;
+  rdsSecret: secretsmanager.ISecret;
   certificate: acm.ICertificate;
   hostedZone: route53.IHostedZone;
   envName: string;
@@ -24,7 +26,7 @@ export class LoadBalancedFargateService extends Construct {
   constructor(scope: Construct, id: string, props: LoadBalancedFargateServiceProps) {
     super(scope, id);
 
-    const { vpcConstruct, ecrConstruct, serviceCpu, serviceMemory, certificate, hostedZone, envName } = props;
+    const { vpcConstruct, ecrConstruct, serviceCpu, serviceMemory, certificate, hostedZone, envName, rdsSecret } = props;
     const { appName, baseDomain } = commonConfig;
 
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc: vpcConstruct.vpc, clusterName: `${appName}-${envName}-ecs-cluster-web` });
@@ -43,7 +45,11 @@ export class LoadBalancedFargateService extends Construct {
       },
       taskImageOptions: { 
         image: appImageAsset,
-        containerPort: 3000
+        containerPort: 3000,
+        secrets: {
+          DATABASE_HOST: ecs.Secret.fromSecretsManager(rdsSecret, 'host'),
+          DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(rdsSecret, 'password'),
+        },
       },
       domainName: baseDomain,
       domainZone: hostedZone,
@@ -54,5 +60,7 @@ export class LoadBalancedFargateService extends Construct {
       serviceName: `${appName}-${envName}-web-service`,
       enableExecuteCommand: true, // ecspresso exec / portforward 用に ECS Exec を有効化
     });
+
+    rdsSecret.grantRead(this.service.taskDefinition.taskRole);
   }
 }

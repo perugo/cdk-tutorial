@@ -4,6 +4,7 @@ import { StackParameter } from '../../parameter';
 import { Vpc } from '../constructs/vpc';
 import { Ecr } from '../constructs/ecr';
 import { Route53 } from '../constructs/route53';
+import { Rds } from '../constructs/rds';
 import { Acm } from '../constructs/acm';
 import { LoadBalancedFargateService } from '../constructs/load_balanced_fargate_service';
 interface CdkTutorialStackProps extends cdk.StackProps {
@@ -15,7 +16,7 @@ export class CdkTutorialStack extends cdk.Stack {
 
     super(scope, id, props);
 
-    const { envName, serviceCpu, serviceMemory } = props.config;
+    const { envName, serviceCpu, database, serviceMemory } = props.config;
 
     // タグやRemovalPolicyを一元管理
     cdk.Tags.of(this).add('Env', envName);
@@ -26,6 +27,13 @@ export class CdkTutorialStack extends cdk.Stack {
 
     //ECR
     const ecrConstruct = new Ecr(this, 'Ecr', { envName });
+
+    // RDS
+    const rdsConstruct = new Rds(this, 'Database', {
+      vpcConstruct,
+      config: database,
+      envName,
+    });
 
     // Route53
     const route53Construct = new Route53(this, 'Route53');
@@ -38,6 +46,7 @@ export class CdkTutorialStack extends cdk.Stack {
     new LoadBalancedFargateService(this, 'LoadBalancedFargateService', {
       vpcConstruct,
       ecrConstruct,
+      rdsSecret: rdsConstruct.secret,
       serviceCpu,
       serviceMemory,
       certificate: acmConstruct.certificate,
