@@ -16,3 +16,37 @@
 ```bash
 ecspresso/staging/run_bash.sh
 ```
+
+
+### portforward_db.sh
+
+- 手元のPC上で実行すると、localhostの8888番を
+  Auroraの5432番にポートフォワーディングします
+  - ローカルからDBサーバーに繋げられるようになります
+    - 接続先は `localhost:8888`
+    - 実際の接続にはDBのパスワード等が必要 (Secrets Manager に保管)
+    - TablePlusなどを用いて接続情報を保存しておくと楽です
+  - 踏み台として web コンテナを経由する想定です
+
+#### DB への接続例
+
+`portforward_db.sh` を起動した状態で、別ターミナルから接続する。
+
+```bash
+# 手元のPC上で実行すると、localhostの8888番をAuroraの5432番にポートフォワーディングします
+ecspresso/staging/portforward_db.sh
+
+# 別ターミナルでpsql で接続 (ホストは localhost:8888 を指定)
+# rdsのパスワード入力を求められます
+psql -h localhost -p 8888 -U postgres -d postgres
+```
+
+TablePlus 等の GUI ツールを使う場合は以下を指定する。
+
+| 項目 | 値 |
+| --- | --- |
+| Host | `localhost` |
+| Port | `8888` |
+| User | `postgres` |
+| Password | Secrets Manager に保管された値 |
+| Database | `postgres` |
