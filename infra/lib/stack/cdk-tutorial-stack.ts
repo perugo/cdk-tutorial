@@ -8,6 +8,7 @@ import { Rds } from '../constructs/rds';
 import { Acm } from '../constructs/acm';
 import { LoadBalancedFargateService } from '../constructs/load_balanced_fargate_service';
 import { ApplicationPipeline } from '../constructs/app_pipeline';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 
 interface CdkTutorialStackProps extends cdk.StackProps {
   config: StackParameter;
@@ -18,7 +19,7 @@ export class CdkTutorialStack extends cdk.Stack {
 
     super(scope, id, props);
 
-    const { envName, serviceCpu, database, serviceMemory } = props.config;
+    const { envName, serviceCpu, database, serviceMemory, appSecretName } = props.config;
 
     // タグやRemovalPolicyを一元管理
     cdk.Tags.of(this).add('Env', envName);
@@ -45,6 +46,8 @@ export class CdkTutorialStack extends cdk.Stack {
       hostedZone: route53Construct.hostedZone
     });
 
+    const appSecret = secretsmanager.Secret.fromSecretNameV2(this, 'AppSecret', appSecretName);
+
     const loadBalancedFargateServiceConstruct = new LoadBalancedFargateService(this, 'LoadBalancedFargateService', {
       vpcConstruct,
       ecrConstruct,
@@ -54,6 +57,7 @@ export class CdkTutorialStack extends cdk.Stack {
       certificate: acmConstruct.certificate,
       envName: envName,
       hostedZone: route53Construct.hostedZone,
+      appSecret
     });
 
     new ApplicationPipeline(this, 'ApplicationPipeline', {

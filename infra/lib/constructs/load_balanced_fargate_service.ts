@@ -18,6 +18,7 @@ interface LoadBalancedFargateServiceProps {
   certificate: acm.ICertificate;
   hostedZone: route53.IHostedZone;
   envName: string;
+  appSecret: secretsmanager.ISecret;
 }
 
 export class LoadBalancedFargateService extends Construct {
@@ -26,7 +27,7 @@ export class LoadBalancedFargateService extends Construct {
   constructor(scope: Construct, id: string, props: LoadBalancedFargateServiceProps) {
     super(scope, id);
 
-    const { vpcConstruct, ecrConstruct, serviceCpu, serviceMemory, certificate, hostedZone, envName, rdsSecret } = props;
+    const { vpcConstruct, ecrConstruct, serviceCpu, serviceMemory, certificate, hostedZone, envName, rdsSecret, appSecret } = props;
     const { appName, baseDomain } = commonConfig;
 
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc: vpcConstruct.vpc, clusterName: `${appName}-${envName}-ecs-cluster-web` });
@@ -46,9 +47,14 @@ export class LoadBalancedFargateService extends Construct {
       taskImageOptions: { 
         image: appImageAsset,
         containerPort: 3000,
+        environment: {
+            RAILS_ENV: envName
+        },
         secrets: {
           DATABASE_HOST: ecs.Secret.fromSecretsManager(rdsSecret, 'host'),
           DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(rdsSecret, 'password'),
+          RAILS_MASTER_KEY: ecs.Secret.fromSecretsManager(appSecret, 'rails_master_key'),
+          SECRET_KEY_BASE: ecs.Secret.fromSecretsManager(appSecret, 'secret_key_base'),
         },
       },
       domainName: baseDomain,

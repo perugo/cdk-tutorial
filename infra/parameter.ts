@@ -29,6 +29,7 @@ export interface StackParameter {
   database: DatabaseConfig;
   serviceCpu: number;
   serviceMemory: number;
+  appSecretName: string; // 事前に AWS コンソールで作成した Secret 名 (rails_master_key, secret_key_base を key/value で保持)
 }
 
 export const stagingStackParameter: StackParameter = {
@@ -46,4 +47,5 @@ export const stagingStackParameter: StackParameter = {
   },
   serviceCpu: 256,
   serviceMemory: 512,
+  appSecretName: 'cdk-staging-app-cdk-tutorial',
 };
