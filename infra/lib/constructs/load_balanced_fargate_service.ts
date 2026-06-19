@@ -67,6 +67,11 @@ export class LoadBalancedFargateService extends Construct {
       enableExecuteCommand: true, // ecspresso exec / portforward 用に ECS Exec を有効化
     });
 
+    // Rails標準の /up エンドポイントでヘルスチェック設定
+    this.service.targetGroup.configureHealthCheck({
+      path: '/up',
+    });
+
     rdsSecret.grantRead(this.service.taskDefinition.taskRole);
   }
 }
