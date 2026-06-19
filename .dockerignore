@@ -45,3 +45,6 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# CDK / infra 一式は アプリコードのDocker イメージには不要
+infra
