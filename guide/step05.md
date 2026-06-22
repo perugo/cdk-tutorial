@@ -12,6 +12,8 @@ Route53 → ALB → Fargate              Route53 → ALB → Fargate
                                              (Private Isolated Subnet)
 ```
 
+![step_05_complete](../README_images/step05_complete.png)
+
 ---
 
 ## 1. VPC にプライベート隔離サブネットを追加する

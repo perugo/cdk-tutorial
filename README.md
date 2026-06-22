@@ -16,6 +16,7 @@ AWS CDK (TypeScript) を使って、Node.js の Web アプリを **コンテナ�
 | 04 | ALB + Route53 + ACM で独自ドメイン HTTPS 公開 | [guide/step04.md](guide/step04.md) |
 | 05 | RDS (PostgreSQL) を追加し、Webアプリの `/db-health` で DB 疎通確認 | [guide/step05.md](guide/step05.md) |
 | 06 | GitHub Actions → CodePipeline で自動デプロイ（OIDC + S3 + CodeBuild） | [guide/step06.md](guide/step06.md) |
+| 07 | アプリを Node.js から Rails 8.1 へ置き換え（RDS 疎通確認） | [guide/step07.md](guide/step07.md) |
 
 ---
 
