@@ -44,3 +44,6 @@ Style/FrozenStringLiteralComment:
 RSpec/MultipleExpectations:
   Enabled: false
 
+# TODO: ユーザー認証周りの実装完了後、このdisableを削除する
+Rails/I18nLocaleTexts:
+  Enabled: false
