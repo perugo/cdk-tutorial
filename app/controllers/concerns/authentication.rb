@@ -2,23 +2,23 @@ module Authentication
   extend ActiveSupport::Concern
 
   included do
-    before_action :require_authentication
-    helper_method :authenticated?
+    before_action :authenticate_user!
+    helper_method :user_signed_in?, :current_user
   end
 
   class_methods do
     def allow_unauthenticated_access(**)
-      skip_before_action(:require_authentication, **)
+      skip_before_action(:authenticate_user!, **)
     end
   end
 
   private
 
-  def authenticated?
+  def user_signed_in?
     resume_session
   end
 
-  def require_authentication
+  def authenticate_user!
     resume_session || request_authentication
   end
 
@@ -39,15 +39,20 @@ module Authentication
     session.delete(:return_to_after_authenticating) || root_url
   end
 
-  def start_new_session_for(user)
+  def sign_in(user)
     user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |session|
       Current.session = session
       cookies.signed.permanent[:session_id] = { value: session.id, httponly: true, same_site: :lax }
     end
   end
 
-  def terminate_session
+  def sign_out
     Current.session.destroy
     cookies.delete(:session_id)
+  end
+
+  def current_user
+    resume_sessions
+    Current.user
   end
 end

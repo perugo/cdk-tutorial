@@ -3,6 +3,7 @@
 <div style="font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px;">
   <h1>🚀 Rails + RDS 疎通確認</h1>
 
+  <%= current_user.inspect %>
   <% if @db_status[:connected] %>
     <div style="background: #e8f5e8; border: 1px solid #4caf50; border-radius: 8px; padding: 20px; margin: 20px 0;">
       <h2 style="color: #2e7d32; margin-top: 0;">✅ データベース接続成功</h2>
